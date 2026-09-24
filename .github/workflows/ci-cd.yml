@@ -32,25 +32,28 @@ jobs:
 
       - name: Instalar Bearer CLI (OWASP SAST & Data Flow Scanner)
         run: |
-          curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
 
       - name: Ejecutar analisis SAST y de flujo de datos con Bearer CLI
         run: |
-          bearer scan src --scanner=sast,secrets --format=markdown --output=bearer-report.md || true
-          bearer scan src --report=dataflow --format=markdown --output=bearer-dataflow.md || true
+          bearer scan src --scanner=sast,secrets --exit-code=0 --no-color > bearer-report.txt
+          bearer scan src --report=dataflow --exit-code=0 --no-color > bearer-dataflow.txt
           echo "## Reporte de Vulnerabilidades SAST - Bearer CLI" >> $GITHUB_STEP_SUMMARY
-          cat bearer-report.md >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          cat bearer-report.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           echo "## Mapa de Flujo de Datos Sensibles - Bearer CLI" >> $GITHUB_STEP_SUMMARY
-          cat bearer-dataflow.md >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          cat bearer-dataflow.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Subir reporte SAST como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: bearer-security-reports
           path: |
-            bearer-report.md
-            bearer-dataflow.md
+            bearer-report.txt
+            bearer-dataflow.txt
 
       - name: Iniciar sesion en GitHub Container Registry
         uses: docker/login-action@v3
