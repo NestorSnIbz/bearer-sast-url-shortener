@@ -16,7 +16,7 @@ urlStore.set('owasp26', {
   visits: 1
 });
 
-router.get('/api/links', (req, res) => {
+router.get('/api/links', (_req, res) => {
   const items = Array.from(urlStore.values());
   res.json({ total: items.length, links: items });
 });
@@ -48,12 +48,12 @@ router.get('/r/:code', (req, res) => {
   const entry = urlStore.get(code);
 
   if (!entry) {
-    return res.status(404).json({ error: 'Codigo corto no encontrado.' });
+    return res.status(404).json({ error: 'Short code not found.' });
   }
 
   const check = validateDestinationUrl(entry.targetUrl);
   if (!check.valid) {
-    return res.status(400).json({ error: 'Destino bloqueado por politica de seguridad.' });
+    return res.status(400).json({ error: 'Destination blocked by security policy.' });
   }
 
   entry.visits += 1;

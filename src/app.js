@@ -31,11 +31,11 @@ app.get('/', (_req, res) => {
     .join('');
 
   res.type('html').send(`<!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SafeLink - Auditoria SAST con Bearer CLI</title>
+  <title>SafeLink - SAST Audit with Bearer CLI</title>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 880px; margin: 40px auto; padding: 0 20px; background: #f8fafc; color: #0f172a; }
     header { background: #0f172a; color: #f8fafc; padding: 24px; border-radius: 10px; margin-bottom: 24px; }
@@ -52,22 +52,22 @@ app.get('/', (_req, res) => {
 </head>
 <body>
   <header>
-    <h1>SafeLink: Servicio Acortador Auditado con Bearer CLI</h1>
+    <h1>SafeLink: URL Shortener Audited with Bearer CLI</h1>
     <span class="badge">OWASP Source Code Analysis Tools | SAST & Data Flow</span>
   </header>
   <div class="card">
-    <h2>Registrar enlace</h2>
+    <h2>Shorten a URL</h2>
     <form id="shortForm">
       <input type="url" id="urlInput" placeholder="https://owasp.org" required />
-      <button type="submit">Acortar URL</button>
+      <button type="submit">Shorten URL</button>
     </form>
     <p id="feedback"></p>
   </div>
   <div class="card">
-    <h2>Enlaces registrados</h2>
+    <h2>Registered Links</h2>
     <table>
       <thead>
-        <tr><th>Codigo</th><th>URL Destino</th><th>Host</th><th>Visitas</th></tr>
+        <tr><th>Code</th><th>Target URL</th><th>Host</th><th>Visits</th></tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
@@ -85,7 +85,7 @@ app.get('/', (_req, res) => {
         window.location.reload();
       } else {
         const err = await res.json();
-        document.getElementById('feedback').textContent = err.error || 'Error al registrar';
+        document.getElementById('feedback').textContent = err.error || 'Failed to register URL';
       }
     });
   </script>

@@ -36,7 +36,7 @@ function makeRequest(server, path, method = 'GET', body = null) {
   });
 }
 
-test('GET /health devuelve estado ok y cabeceras de seguridad Helmet', async () => {
+test('GET /health returns status ok and Helmet security headers', async () => {
   const server = app.listen(0);
   try {
     const res = await makeRequest(server, '/health');
@@ -49,7 +49,7 @@ test('GET /health devuelve estado ok y cabeceras de seguridad Helmet', async () 
   }
 });
 
-test('POST /api/links rechaza esquemas javascript: para prevenir XSS y Open Redirect', async () => {
+test('POST /api/links rejects javascript: schemes to prevent XSS and Open Redirect', async () => {
   const server = app.listen(0);
   try {
     const res = await makeRequest(server, '/api/links', 'POST', {
@@ -57,13 +57,13 @@ test('POST /api/links rechaza esquemas javascript: para prevenir XSS y Open Redi
     });
     assert.equal(res.statusCode, 400);
     const data = JSON.parse(res.body);
-    assert.match(data.error, /Solo se permiten esquemas HTTP y HTTPS/);
+    assert.match(data.error, /Only HTTP and HTTPS protocols are allowed/);
   } finally {
     server.close();
   }
 });
 
-test('POST /api/links registra una URL HTTPS valida y permite redireccion 302', async () => {
+test('POST /api/links registers a valid HTTPS URL and returns a 302 redirect', async () => {
   const server = app.listen(0);
   try {
     const createRes = await makeRequest(server, '/api/links', 'POST', {

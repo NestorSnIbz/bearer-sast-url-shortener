@@ -4,17 +4,17 @@ const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 
 function validateDestinationUrl(rawUrl) {
   if (typeof rawUrl !== 'string' || rawUrl.trim().length === 0) {
-    return { valid: false, reason: 'La URL es obligatoria.' };
+    return { valid: false, reason: 'Destination URL is required.' };
   }
 
   try {
     const parsed = new URL(rawUrl.trim());
     if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) {
-      return { valid: false, reason: 'Solo se permiten esquemas HTTP y HTTPS.' };
+      return { valid: false, reason: 'Only HTTP and HTTPS protocols are allowed.' };
     }
     return { valid: true, normalizedUrl: parsed.toString(), host: parsed.hostname };
   } catch {
-    return { valid: false, reason: 'El formato de la URL no es valido.' };
+    return { valid: false, reason: 'Invalid URL format.' };
   }
 }
 
