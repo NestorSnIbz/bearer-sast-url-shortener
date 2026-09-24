@@ -1,0 +1,14 @@
+{
+  "name": "safelink-bearer-sast",
+  "version": "1.0.0",
+  "description": "Servicio acortador de enlaces auditado con Bearer CLI (OWASP SAST) y desplegado en Azure App Service",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test tests/app.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "helmet": "^8.0.0"
+  }
+}

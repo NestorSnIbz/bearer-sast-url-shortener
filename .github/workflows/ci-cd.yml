@@ -1,0 +1,79 @@
+name: Escaneo SAST con Bearer CLI y Despliegue a Azure
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+env:
+  AZURE_WEBAPP_NAME: upt-awa-577
+
+jobs:
+  security-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar codigo fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias y ejecutar pruebas
+        run: |
+          npm install
+          npm test
+
+      - name: Instalar Bearer CLI (OWASP SAST & Data Flow Scanner)
+        run: |
+          curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Ejecutar analisis SAST y de flujo de datos con Bearer CLI
+        run: |
+          bearer scan src --scanner=sast,secrets --format=markdown --output=bearer-report.md || true
+          bearer scan src --report=dataflow --format=markdown --output=bearer-dataflow.md || true
+          echo "## Reporte de Vulnerabilidades SAST - Bearer CLI" >> $GITHUB_STEP_SUMMARY
+          cat bearer-report.md >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Mapa de Flujo de Datos Sensibles - Bearer CLI" >> $GITHUB_STEP_SUMMARY
+          cat bearer-dataflow.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Subir reporte SAST como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: bearer-security-reports
+          path: |
+            bearer-report.md
+            bearer-dataflow.md
+
+      - name: Iniciar sesion en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir y publicar imagen Docker
+        run: |
+          ACTOR_LOWER=$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')
+          docker build . --tag ghcr.io/${ACTOR_LOWER}/safelink-bearer:latest --tag ghcr.io/${ACTOR_LOWER}/safelink-bearer:${{ github.sha }}
+          docker push ghcr.io/${ACTOR_LOWER}/safelink-bearer:latest
+          docker push ghcr.io/${ACTOR_LOWER}/safelink-bearer:${{ github.sha }}
+
+  deploy-azure:
+    runs-on: ubuntu-latest
+    needs: security-and-build
+    steps:
+      - name: Desplegar contenedor en Azure App Service
+        continue-on-error: true
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: ghcr.io/${{ github.actor }}/safelink-bearer:latest
