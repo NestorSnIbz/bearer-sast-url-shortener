@@ -1,4 +1,4 @@
-name: SAST Scan with Bearer CLI and Azure Deployment
+name: SAST Scan with Bearer CLI and Vercel Deployment
 
 on:
   push:
@@ -9,9 +9,6 @@ permissions:
   contents: read
   packages: write
   security-events: write
-
-env:
-  AZURE_WEBAPP_NAME: upt-awa-577
 
 jobs:
   security-and-build:
@@ -55,28 +52,18 @@ jobs:
             bearer-report.txt
             bearer-dataflow.txt
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        run: |
-          ACTOR_LOWER=$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')
-          docker build . --tag ghcr.io/${ACTOR_LOWER}/safelink-bearer:latest --tag ghcr.io/${ACTOR_LOWER}/safelink-bearer:${{ github.sha }}
-          docker push ghcr.io/${ACTOR_LOWER}/safelink-bearer:latest
-          docker push ghcr.io/${ACTOR_LOWER}/safelink-bearer:${{ github.sha }}
-
-  deploy-azure:
+  deploy-vercel:
     runs-on: ubuntu-latest
     needs: security-and-build
     steps:
-      - name: Deploy container to Azure App Service
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
         continue-on-error: true
-        uses: azure/webapps-deploy@v2
+        uses: amondnet/vercel-action@v25
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: ghcr.io/${{ github.actor }}/safelink-bearer:latest
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'

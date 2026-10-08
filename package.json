@@ -1,7 +1,7 @@
 {
   "name": "safelink-bearer-sast",
   "version": "1.0.0",
-  "description": "URL shortener service audited with Bearer CLI (OWASP SAST) and deployed to Azure App Service",
+  "description": "URL shortener service audited with Bearer CLI (OWASP SAST) and deployed to Vercel",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
